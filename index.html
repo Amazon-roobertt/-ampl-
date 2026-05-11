@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logistics Controller - Amazon</title>
+    <title>AMPL - Dashboard Oficial</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -16,91 +16,128 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
         .amazon-orange { color: #FF9900; }
         .amazon-bg-orange { background-color: #FF9900; }
+        
+        /* Marca de água dinâmica */
+        .watermark {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: 50;
+            transition: opacity 0.3s ease;
+        }
+        .watermark:hover { opacity: 0.8; }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(0.5);
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen relative pb-20">
+<body class="bg-slate-50 text-slate-900 min-h-screen relative pb-24">
 
     <div class="max-w-7xl mx-auto p-4 md:p-8">
-        <!-- Header -->
-        <header class="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <div class="p-3 bg-black rounded-2xl shadow-xl flex items-center justify-center">
-                    <svg viewBox="0 0 1024 1024" class="text-white w-10 h-10" fill="currentColor">
+        <!-- Cabeçalho -->
+        <header class="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="flex items-center gap-5">
+                <!-- Logo AMPL Customizado -->
+                <div class="bg-black p-0 rounded-2xl shadow-xl flex flex-col items-center justify-center w-24 h-24 overflow-hidden border border-slate-800 leading-none relative">
+                    <span class="text-white font-black text-3xl tracking-tighter z-10 -mt-1 uppercase">AMPL</span>
+                    <svg viewBox="0 0 1024 1024" class="amazon-orange w-full scale-150 absolute bottom-1" fill="currentColor">
                         <path d="M685.2 648.2c-73.4 51.2-166.4 78.4-257.6 78.4-124.6 0-234.6-43.2-319.4-114.2-8.4-7-2-18.4 8.6-13.6 100.8 45.4 223.2 72.2 344.8 72.2 92.4 0 191.4-19 269.8-56.8 11.2-5.4 20.2 6.8 11.2 13.8-0.8 0.2-1.8 0.2-2.6 0.2zM715.4 584.2c-15.6-20.2-51.4-15.8-82.6-11.8-6.6 0.8-7.8-8.2-1.4-11 50.4-22.4 126.8-15.2 139.8 1.4 12.6 16.4-1 99.4-44.4 139-5.4 6.4-13-1-9.4-6.8 28-44.8 13.6-90.8-2-110.8z" />
-                        <path d="M523.8 152.2c-113.6 0-218.4 46.2-218.4 186.4 0 11.2 0.8 24.6 2.4 36.4 2.8 19.8 21.6 33.6 40.8 30.6l54.8-8.6c15.6-2.4 27-16.4 25.2-32-1.2-9-1.8-18.2-1.8-26.4 0-66.2 34.6-91.8 91.8-91.8 38.6 0 81.8 11.8 81.8 69 0 45.4-23.2 65.6-76 96-74.4 42-167 96-167 217.2 0 101.6 74.4 162.2 165.6 162.2 78.4 0 133.4-33.6 172.4-86.4h1.4l15.2 70.8c3.4 15.6 17.8 26.2 33.8 24.6l54-5.4c17.8-1.8 30.6-18.4 27.2-36l-41.2-212.8c-12-62.8-51.4-203.8-223-203.8zM538 676.6c-48.4 0-82.6-25.2-82.6-70.6 0-59 50.4-87.4 117.8-124.6 20.8-11.8 38.6-22.4 53.6-35.4l5.4 127.8c-18.4 64.6-56 102.8-94.2 102.8z" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Logistics Controller</h1>
-                    <p class="text-slate-500 font-semibold text-sm">Controle de Carregamento & Volume</p>
+                    <h1 class="text-4xl font-black text-slate-800 tracking-tighter uppercase">AMPL</h1>
+                    <p class="text-slate-500 font-bold text-sm flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                        Gestão de Carregamento & Operações
+                    </p>
                 </div>
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
-                <button id="downloadBtn" style="display: none;" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl transition-all shadow-md font-bold text-sm">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    Exportar Resumo
-                </button>
-                
-                <label class="flex items-center gap-2 px-6 py-3 rounded-xl cursor-pointer transition-all shadow-md font-bold text-sm amazon-bg-orange hover:opacity-90 text-white">
-                    <i data-lucide="upload" class="w-4 h-4"></i>
-                    <span id="uploadText">Importar Planilha</span>
-                    <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls" />
-                </label>
+                <!-- Seletor de Data -->
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Data da Operação</span>
+                    <input type="date" id="dateSelector" class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-orange-500 transition-all" />
+                </div>
+
+                <div class="flex items-end gap-3">
+                    <!-- Botão de Limpeza -->
+                    <button id="clearBtn" style="display: none;" class="flex items-center gap-2 bg-white border border-slate-200 text-red-500 hover:bg-red-50 px-5 py-3 rounded-xl transition-all font-bold text-sm shadow-sm">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        Limpar
+                    </button>
+
+                    <!-- Botão de Download -->
+                    <button id="downloadBtn" style="display: none;" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl transition-all shadow-md font-bold text-sm">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Exportar
+                    </button>
+                    
+                    <!-- Input de Upload -->
+                    <label class="flex items-center gap-2 px-6 py-3 rounded-xl cursor-pointer transition-all shadow-md font-bold text-sm amazon-bg-orange hover:bg-orange-600 text-white">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span id="uploadText">Carregar</span>
+                        <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls" />
+                    </label>
+                </div>
             </div>
         </header>
 
-        <!-- Stats Grid -->
+        <!-- Painel de Estatísticas -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 group hover:border-orange-200 transition-colors">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-blue-100 text-blue-600 rounded-2xl">
+                    <div class="p-3 bg-blue-100 text-blue-600 rounded-2xl group-hover:scale-110 transition-transform">
                         <i data-lucide="truck" class="w-6 h-6"></i>
                     </div>
-                    <span class="text-[10px] font-black tracking-widest px-3 py-1 rounded-full bg-blue-50 text-blue-600 uppercase">Ativo</span>
+                    <span class="text-[10px] font-black tracking-widest px-3 py-1 rounded-full bg-blue-50 text-blue-600 uppercase">Status: Ativo</span>
                 </div>
                 <h3 class="text-slate-400 text-xs font-bold uppercase">Total de Rotas</h3>
                 <p id="totalRoutes" class="text-4xl font-black mt-1 text-slate-800">0</p>
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 group hover:border-orange-200 transition-colors">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-orange-100 text-orange-600 rounded-2xl">
+                    <div class="p-3 bg-orange-100 text-orange-600 rounded-2xl group-hover:scale-110 transition-transform">
                         <i data-lucide="package" class="w-6 h-6"></i>
                     </div>
-                    <span class="text-[10px] font-black tracking-widest px-3 py-1 rounded-full bg-orange-50 text-orange-600 uppercase">Volume</span>
+                    <span class="text-[10px] font-black tracking-widest px-3 py-1 rounded-full bg-orange-50 text-orange-600 uppercase">Volume Diário</span>
                 </div>
-                <h3 class="text-slate-400 text-xs font-bold uppercase">Pacotes Totais</h3>
+                <h3 class="text-slate-400 text-xs font-bold uppercase">Pacotes Consolidados</h3>
                 <p id="totalPackages" class="text-4xl font-black mt-1 text-slate-800">0</p>
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[160px] flex flex-col">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[160px] flex flex-col group hover:border-orange-200 transition-colors">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
-                        <i data-lucide="list-filter" class="w-6 h-6"></i>
+                        <i data-lucide="layers" class="w-6 h-6"></i>
                     </div>
                     <span class="text-[10px] font-black tracking-widest px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 uppercase">Frota por Turno</span>
                 </div>
-                <div id="vehicleSummary" class="flex-1 space-y-2 overflow-y-auto max-h-36 pr-2 custom-scrollbar text-xs">
-                    <p class="text-slate-400 italic">Importe os dados para ver o resumo.</p>
+                <div id="vehicleSummary" class="flex-1 space-y-2 overflow-y-auto max-h-36 pr-2 custom-scrollbar text-[11px] font-bold leading-relaxed">
+                    <p class="text-slate-400 italic font-medium">Aguardando dados da planilha...</p>
                 </div>
             </div>
         </div>
 
-        <!-- Table Container -->
+        <!-- Contentor da Tabela -->
         <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h2 class="text-xl font-bold flex items-center gap-2 text-slate-800">
-                    <i data-lucide="file-spreadsheet" class="text-orange-500 w-5 h-5"></i>
-                    Rotas Processadas
+                    <i data-lucide="clipboard-list" class="text-orange-500 w-5 h-5"></i>
+                    Listagem Detalhada
                 </h2>
                 <div class="relative group">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors w-4 h-4"></i>
                     <input 
                         type="text" 
                         id="searchInput"
-                        placeholder="Pesquisar Rota ou Veículo..." 
-                        class="pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition-all w-full md:w-80 text-sm font-medium"
+                        placeholder="Pesquisar por ID ou Veículo..." 
+                        class="pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white outline-none transition-all w-full md:w-80 text-sm font-semibold"
                     />
                 </div>
             </div>
@@ -108,45 +145,51 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse" id="mainTable">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-500 uppercase text-[10px] font-black tracking-widest">
-                            <th class="px-8 py-4 border-b">Identificador</th>
-                            <th class="px-8 py-4 border-b">Modelo Veículo</th>
-                            <th class="px-8 py-4 border-b">Janela</th>
-                            <th class="px-8 py-4 border-b text-center">Volume</th>
+                        <tr class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                            <th class="px-8 py-5 border-b">Data</th>
+                            <th class="px-8 py-5 border-b">ID Rota</th>
+                            <th class="px-8 py-5 border-b">Modelo do Veículo</th>
+                            <th class="px-8 py-5 border-b">Plano (Horas)</th>
+                            <th class="px-8 py-4 border-b text-center">Qtd. Pacotes</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-100">
-                        <!-- Linhas geradas via JS -->
+                    <tbody id="tableBody" class="divide-y divide-slate-100 font-bold text-sm">
+                        <!-- Conteúdo preenchido por JS -->
                     </tbody>
                 </table>
-                <div id="emptyState" class="p-20 flex flex-col items-center justify-center text-center">
-                    <div class="bg-orange-100 p-8 rounded-full mb-6 inline-block text-orange-600">
-                        <i data-lucide="file-text" class="w-12 h-12"></i>
+                <div id="emptyState" class="p-24 flex flex-col items-center justify-center text-center">
+                    <div class="bg-orange-50 p-10 rounded-full mb-6 inline-block text-orange-200">
+                        <i data-lucide="calendar" class="w-16 h-16"></i>
                     </div>
-                    <h3 class="text-xl font-black text-slate-800 uppercase tracking-tight">Dashboard Pronto</h3>
-                    <p class="text-sm text-slate-400 mt-2 font-medium">Carregue o arquivo consolidado para iniciar a análise operacional.</p>
+                    <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight">AMPL</h3>
+                    <p class="text-slate-400 mt-2 font-bold max-w-sm">Selecione uma data no calendário e carregue o arquivo para processar a operação.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Marca D'água -->
-    <div class="fixed bottom-6 right-6 opacity-30 flex items-center gap-3 select-none pointer-events-none group hover:opacity-100 transition-opacity">
-        <svg viewBox="0 0 1024 1024" class="w-8 h-8 text-slate-900" fill="currentColor">
-            <path d="M685.2 648.2c-73.4 51.2-166.4 78.4-257.6 78.4-124.6 0-234.6-43.2-319.4-114.2-8.4-7-2-18.4 8.6-13.6 100.8 45.4 223.2 72.2 344.8 72.2 92.4 0 191.4-19 269.8-56.8 11.2-5.4 20.2 6.8 11.2 13.8-0.8 0.2-1.8 0.2-2.6 0.2zM715.4 584.2c-15.6-20.2-51.4-15.8-82.6-11.8-6.6 0.8-7.8-8.2-1.4-11 50.4-22.4 126.8-15.2 139.8 1.4 12.6 16.4-1 99.4-44.4 139-5.4 6.4-13-1-9.4-6.8 28-44.8 13.6-90.8-2-110.8z" />
-            <path d="M523.8 152.2c-113.6 0-218.4 46.2-218.4 186.4 0 11.2 0.8 24.6 2.4 36.4 2.8 19.8 21.6 33.6 40.8 30.6l54.8-8.6c15.6-2.4 27-16.4 25.2-32-1.2-9-1.8-18.2-1.8-26.4 0-66.2 34.6-91.8 91.8-91.8 38.6 0 81.8 11.8 81.8 69 0 45.4-23.2 65.6-76 96-74.4 42-167 96-167 217.2 0 101.6 74.4 162.2 165.6 162.2 78.4 0 133.4-33.6 172.4-86.4h1.4l15.2 70.8c3.4 15.6 17.8 26.2 33.8 24.6l54-5.4c17.8-1.8 30.6-18.4 27.2-36l-41.2-212.8c-12-62.8-51.4-203.8-223-203.8zM538 676.6c-48.4 0-82.6-25.2-82.6-70.6 0-59 50.4-87.4 117.8-124.6 20.8-11.8 38.6-22.4 53.6-35.4l5.4 127.8c-18.4 64.6-56 102.8-94.2 102.8z" />
-        </svg>
+    <!-- Marca de Água -->
+    <div class="watermark flex items-center gap-4 select-none group">
+        <div class="bg-black p-0 rounded-xl shadow-lg flex flex-col items-center justify-center w-14 h-14 border border-slate-800 leading-none relative overflow-hidden">
+            <span class="text-white font-black text-[14px] z-10 -mt-1 tracking-tighter uppercase">AMPL</span>
+            <svg viewBox="0 0 1024 1024" class="amazon-orange w-full scale-150 absolute bottom-0.5" fill="currentColor">
+                <path d="M685.2 648.2c-73.4 51.2-166.4 78.4-257.6 78.4-124.6 0-234.6-43.2-319.4-114.2-8.4-7-2-18.4 8.6-13.6 100.8 45.4 223.2 72.2 344.8 72.2 92.4 0 191.4-19 269.8-56.8 11.2-5.4 20.2 6.8 11.2 13.8-0.8 0.2-1.8 0.2-2.6 0.2zM715.4 584.2c-15.6-20.2-51.4-15.8-82.6-11.8-6.6 0.8-7.8-8.2-1.4-11 50.4-22.4 126.8-15.2 139.8 1.4 12.6 16.4-1 99.4-44.4 139-5.4 6.4-13-1-9.4-6.8 28-44.8 13.6-90.8-2-110.8z" />
+            </svg>
+        </div>
         <div class="flex flex-col">
-            <span class="text-[10px] font-black uppercase tracking-tighter text-slate-900">Logistics Amazon</span>
-            <span class="text-[14px] font-black text-orange-600 leading-none">@ROOBERTT</span>
+            <span class="text-[11px] font-black uppercase tracking-tighter text-slate-900 leading-none">AMPL</span>
+            <span class="text-[15px] font-black text-orange-500 leading-tight">@ROOBERTT</span>
         </div>
     </div>
 
     <script>
-        // Inicializar ícones
         lucide.createIcons();
-
         let rawData = [];
+
+        // Definir data de hoje como padrão no calendário
+        const dateSelector = document.getElementById('dateSelector');
+        const today = new Date().toISOString().split('T')[0];
+        dateSelector.value = today;
 
         const fileInput = document.getElementById('fileInput');
         const uploadText = document.getElementById('uploadText');
@@ -154,10 +197,23 @@
         const emptyState = document.getElementById('emptyState');
         const searchInput = document.getElementById('searchInput');
         const downloadBtn = document.getElementById('downloadBtn');
+        const clearBtn = document.getElementById('clearBtn');
 
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
+            const selectedDate = dateSelector.value;
+
+            if (!selectedDate) {
+                alert("Por favor, selecione uma data no calendário antes de carregar o arquivo.");
+                fileInput.value = '';
+                return;
+            }
+
             if (!file) return;
+
+            // Formatar data para exibição (DD/MM/YYYY)
+            const [year, month, day] = selectedDate.split('-');
+            const formattedDate = `${day}/${month}/${year}`;
 
             uploadText.innerText = "Processando...";
             const reader = new FileReader();
@@ -165,6 +221,7 @@
             reader.onload = (event) => {
                 try {
                     const bstr = event.target.result;
+                    const XLSX = window.XLSX;
                     const wb = XLSX.read(bstr, { type: 'binary' });
                     const consolidatedData = [];
 
@@ -174,14 +231,11 @@
 
                         if (rows.length > 0) {
                             const firstRowStr = rows[0].join(' ');
+                            const planMatch = firstRowStr.match(/Route plan:\s*(\d+\s*hours)/i);
+                            const plan = planMatch ? planMatch[1].trim() : 'N/A';
 
-                            // 1. Route Plan (até hours)
-                            const routePlanMatch = firstRowStr.match(/Route plan:\s*(\d+\s*hours)/i);
-                            const routePlan = routePlanMatch ? routePlanMatch[1].trim() : 'N/A';
-
-                            // 2. Service Type
-                            const serviceTypeMatch = firstRowStr.match(/Service type:\s*([^,]+)/i);
-                            let rawST = serviceTypeMatch ? serviceTypeMatch[1].trim() : 'N/D';
+                            const stMatch = firstRowStr.match(/Service type:\s*([^,]+)/i);
+                            let rawST = stMatch ? stMatch[1].trim() : 'Indefinido';
                             
                             let serviceType = rawST;
                             if (rawST.toLowerCase().includes("cargo biker preferred dsp:")) {
@@ -190,25 +244,24 @@
                                 serviceType = rawST.split('-')[0].trim();
                             }
 
-                            // 3. Rota (pós _)
-                            const formattedName = sheetName.includes('_') 
+                            const routeName = sheetName.includes('_') 
                                 ? sheetName.substring(sheetName.indexOf('_') + 1) 
                                 : sheetName;
 
-                            // 4. Contagem IDs
-                            let pkgCount = 0;
+                            let count = 0;
                             for (let i = 2; i < rows.length; i++) {
                                 const tid = rows[i][1];
                                 if (tid && String(tid).trim() !== "" && String(tid).toLowerCase() !== "tracking id") {
-                                    pkgCount++;
+                                    count++;
                                 }
                             }
 
-                            consolidatedData.push({
-                                routeName: formattedName,
-                                serviceType: serviceType,
-                                routePlan: routePlan,
-                                packageCount: pkgCount
+                            consolidatedData.push({ 
+                                opDate: formattedDate,
+                                routeName, 
+                                serviceType, 
+                                routePlan: plan, 
+                                packageCount: count 
                             });
                         }
                     });
@@ -216,14 +269,27 @@
                     rawData = consolidatedData;
                     renderData(rawData);
                     updateStats(rawData);
+                    
                     downloadBtn.style.display = 'flex';
-                    uploadText.innerText = "Trocar Planilha";
+                    clearBtn.style.display = 'flex';
+                    uploadText.innerText = "Trocar Arquivo";
                 } catch (err) {
                     console.error(err);
-                    alert("Erro ao processar arquivo. Verifique o formato.");
+                    alert("Erro ao ler o ficheiro.");
                 }
             };
             reader.readAsBinaryString(file);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            rawData = [];
+            fileInput.value = '';
+            uploadText.innerText = "Carregar";
+            downloadBtn.style.display = 'none';
+            clearBtn.style.display = 'none';
+            searchInput.value = '';
+            renderData([]);
+            updateStats([]);
         });
 
         function renderData(data) {
@@ -236,18 +302,21 @@
 
             data.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-colors group";
+                tr.className = "hover:bg-orange-50/30 transition-colors group";
                 tr.innerHTML = `
-                    <td class="px-8 py-5 font-bold text-slate-800 text-sm">${item.routeName}</td>
-                    <td class="px-8 py-5 text-xs font-semibold text-slate-600">${item.serviceType}</td>
-                    <td class="px-8 py-5 text-xs">
-                        <span class="flex items-center gap-1.5 text-slate-500 font-medium">
-                            <i data-lucide="clock" class="w-3 h-3 text-slate-300"></i>
+                    <td class="px-8 py-5 text-slate-400 font-medium text-xs">${item.opDate}</td>
+                    <td class="px-8 py-5 text-slate-800 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                        ${item.routeName}
+                    </td>
+                    <td class="px-8 py-5 text-slate-500">${item.serviceType}</td>
+                    <td class="px-8 py-5">
+                        <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[11px] font-black uppercase">
                             ${item.routePlan}
                         </span>
                     </td>
                     <td class="px-8 py-5 text-center">
-                        <span class="bg-orange-50 text-orange-700 font-bold px-3 py-1 rounded-lg text-xs">
+                        <span class="bg-orange-500 text-white font-black px-4 py-1.5 rounded-xl text-xs shadow-md">
                             ${item.packageCount}
                         </span>
                     </td>
@@ -260,9 +329,8 @@
         function updateStats(data) {
             document.getElementById('totalRoutes').innerText = data.length;
             const totalPkg = data.reduce((a, b) => a + b.packageCount, 0);
-            document.getElementById('totalPackages').innerText = totalPkg.toLocaleString();
+            document.getElementById('totalPackages').innerText = totalPkg.toLocaleString('pt-PT');
 
-            // Sumário de veículos
             const summary = {};
             data.forEach(r => {
                 if (!summary[r.serviceType]) summary[r.serviceType] = {};
@@ -270,13 +338,17 @@
             });
 
             const summaryEl = document.getElementById('vehicleSummary');
+            if (data.length === 0) {
+                summaryEl.innerHTML = '<p class="text-slate-400 italic font-medium">Aguardando dados...</p>';
+                return;
+            }
+
             summaryEl.innerHTML = "";
-            
             Object.entries(summary).forEach(([type, plans]) => {
                 const div = document.createElement('div');
-                div.className = "text-xs leading-snug";
-                const plansText = Object.entries(plans).map(([p, c]) => `${c} de ${p}`).join(' e ');
-                div.innerHTML = `<span class="font-bold text-slate-700">${type}</span> - ${plansText}`;
+                div.className = "p-3 bg-slate-50 rounded-xl border border-slate-100 mb-2";
+                const plansText = Object.entries(plans).map(([p, c]) => `<span class="text-orange-500 font-black">${c}</span> de <span class="text-slate-800 font-black">${p}</span>`).join(' e ');
+                div.innerHTML = `<span class="text-slate-400 font-black uppercase text-[9px] block mb-1 tracking-widest">${type}</span> ${plansText}`;
                 summaryEl.appendChild(div);
             });
         }
@@ -285,22 +357,25 @@
             const term = e.target.value.toLowerCase();
             const filtered = rawData.filter(i => 
                 i.routeName.toLowerCase().includes(term) || 
-                i.serviceType.toLowerCase().includes(term)
+                i.serviceType.toLowerCase().includes(term) ||
+                i.opDate.includes(term)
             );
             renderData(filtered);
         });
 
         downloadBtn.addEventListener('click', () => {
             if (rawData.length === 0) return;
-            const worksheet = XLSX.utils.json_to_sheet(rawData.map(i => ({
+            const XLSX = window.XLSX;
+            const ws = XLSX.utils.json_to_sheet(rawData.map(i => ({
+                'Data': i.opDate,
                 'Rota': i.routeName,
-                'Veículo': i.serviceType,
-                'Plano': i.routePlan,
-                'Pacotes': i.packageCount
+                'Modelo Veículo': i.serviceType,
+                'Tempo de Rota': i.routePlan,
+                'Total de Pacotes': i.packageCount
             })));
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Resumo");
-            XLSX.writeFile(workbook, "Resumo_Amazon_Logistica.xlsx");
+            XLSX.utils.book_append_sheet(workbook, ws, "Dashboard");
+            XLSX.writeFile(workbook, `AMPL_Dashboard_${new Date().toLocaleDateString()}.xlsx`);
         });
     </script>
 </body>
