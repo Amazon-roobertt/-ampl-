@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AMPL - Dashboard Oficial</title>
+    <!-- Favicon / Ícone da Aba -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='black'/%3E%3Ctext x='50%25' y='42%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='900' font-size='32'%3EAMPL%3C/text%3E%3Cpath d='M20 65c15 10 45 10 60 0-5 8-20 15-30 15s-25-7-30-15z' fill='%23FF9900'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -28,11 +30,6 @@
             transition: opacity 0.3s ease;
         }
         .watermark:hover { opacity: 0.8; }
-
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-            filter: invert(0.5);
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen relative pb-24">
@@ -41,7 +38,7 @@
         <!-- Cabeçalho -->
         <header class="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="flex items-center gap-5">
-                <!-- Logo AMPL Customizado -->
+                <!-- Logo AMPL Customizado (Preenchimento Total) -->
                 <div class="bg-black p-0 rounded-2xl shadow-xl flex flex-col items-center justify-center w-24 h-24 overflow-hidden border border-slate-800 leading-none relative">
                     <span class="text-white font-black text-3xl tracking-tighter z-10 -mt-1 uppercase">AMPL</span>
                     <svg viewBox="0 0 1024 1024" class="amazon-orange w-full scale-150 absolute bottom-1" fill="currentColor">
@@ -58,13 +55,7 @@
             </div>
             
             <div class="flex flex-wrap items-center gap-3">
-                <!-- Seletor de Data -->
-                <div class="flex flex-col">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Data da Operação</span>
-                    <input type="date" id="dateSelector" class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-orange-500 transition-all" />
-                </div>
-
-                <div class="flex items-end gap-3">
+                <div class="flex items-center gap-3">
                     <!-- Botão de Limpeza -->
                     <button id="clearBtn" style="display: none;" class="flex items-center gap-2 bg-white border border-slate-200 text-red-500 hover:bg-red-50 px-5 py-3 rounded-xl transition-all font-bold text-sm shadow-sm">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -146,10 +137,9 @@
                 <table class="w-full text-left border-collapse" id="mainTable">
                     <thead>
                         <tr class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
-                            <th class="px-8 py-5 border-b">Data</th>
-                            <th class="px-8 py-5 border-b">ID Rota</th>
+                            <th class="px-8 py-5 border-b">ID Rota (Tratado)</th>
                             <th class="px-8 py-5 border-b">Modelo do Veículo</th>
-                            <th class="px-8 py-5 border-b">Plano (Horas)</th>
+                            <th class="px-8 py-5 border-b">Plano (h)</th>
                             <th class="px-8 py-4 border-b text-center">Qtd. Pacotes</th>
                         </tr>
                     </thead>
@@ -159,10 +149,10 @@
                 </table>
                 <div id="emptyState" class="p-24 flex flex-col items-center justify-center text-center">
                     <div class="bg-orange-50 p-10 rounded-full mb-6 inline-block text-orange-200">
-                        <i data-lucide="calendar" class="w-16 h-16"></i>
+                        <i data-lucide="file-spreadsheet" class="w-16 h-16"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight">AMPL</h3>
-                    <p class="text-slate-400 mt-2 font-bold max-w-sm">Selecione uma data no calendário e carregue o arquivo para processar a operação.</p>
+                    <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight uppercase">AMPL</h3>
+                    <p class="text-slate-400 mt-2 font-bold max-w-sm">Carregue o arquivo consolidado para processar a operação e aplicar os filtros de limpeza.</p>
                 </div>
             </div>
         </div>
@@ -186,11 +176,6 @@
         lucide.createIcons();
         let rawData = [];
 
-        // Definir data de hoje como padrão no calendário
-        const dateSelector = document.getElementById('dateSelector');
-        const today = new Date().toISOString().split('T')[0];
-        dateSelector.value = today;
-
         const fileInput = document.getElementById('fileInput');
         const uploadText = document.getElementById('uploadText');
         const tableBody = document.getElementById('tableBody');
@@ -201,19 +186,7 @@
 
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            const selectedDate = dateSelector.value;
-
-            if (!selectedDate) {
-                alert("Por favor, selecione uma data no calendário antes de carregar o arquivo.");
-                fileInput.value = '';
-                return;
-            }
-
             if (!file) return;
-
-            // Formatar data para exibição (DD/MM/YYYY)
-            const [year, month, day] = selectedDate.split('-');
-            const formattedDate = `${day}/${month}/${year}`;
 
             uploadText.innerText = "Processando...";
             const reader = new FileReader();
@@ -231,14 +204,22 @@
 
                         if (rows.length > 0) {
                             const firstRowStr = rows[0].join(' ');
+                            
+                            // 1. Route Plan: Captura horas e formata para "X h"
                             const planMatch = firstRowStr.match(/Route plan:\s*(\d+\s*hours)/i);
-                            const plan = planMatch ? planMatch[1].trim() : 'N/A';
+                            let plan = planMatch ? planMatch[1].trim() : 'N/A';
+                            if (plan !== 'N/A') {
+                                // Substitui " hours" por " h"
+                                plan = plan.replace(/\s*hours/i, ' h');
+                            }
 
+                            // 2. Service Type: Regras de Cargo Biker e Limpeza
                             const stMatch = firstRowStr.match(/Service type:\s*([^,]+)/i);
                             let rawST = stMatch ? stMatch[1].trim() : 'Indefinido';
                             
                             let serviceType = rawST;
-                            if (rawST.toLowerCase().includes("cargo biker preferred dsp:")) {
+                            // Regra específica: Cargo Biker Preferred DSP: -> Cargo Biker
+                            if (rawST.toLowerCase().includes("cargo biker") && rawST.toLowerCase().includes("preferred dsp:")) {
                                 serviceType = "Cargo Biker";
                             } else {
                                 serviceType = rawST.split('-')[0].trim();
@@ -257,7 +238,6 @@
                             }
 
                             consolidatedData.push({ 
-                                opDate: formattedDate,
                                 routeName, 
                                 serviceType, 
                                 routePlan: plan, 
@@ -304,7 +284,6 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-orange-50/30 transition-colors group";
                 tr.innerHTML = `
-                    <td class="px-8 py-5 text-slate-400 font-medium text-xs">${item.opDate}</td>
                     <td class="px-8 py-5 text-slate-800 flex items-center gap-2">
                         <span class="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
                         ${item.routeName}
@@ -357,8 +336,7 @@
             const term = e.target.value.toLowerCase();
             const filtered = rawData.filter(i => 
                 i.routeName.toLowerCase().includes(term) || 
-                i.serviceType.toLowerCase().includes(term) ||
-                i.opDate.includes(term)
+                i.serviceType.toLowerCase().includes(term)
             );
             renderData(filtered);
         });
@@ -367,7 +345,6 @@
             if (rawData.length === 0) return;
             const XLSX = window.XLSX;
             const ws = XLSX.utils.json_to_sheet(rawData.map(i => ({
-                'Data': i.opDate,
                 'Rota': i.routeName,
                 'Modelo Veículo': i.serviceType,
                 'Tempo de Rota': i.routePlan,
@@ -375,7 +352,7 @@
             })));
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, ws, "Dashboard");
-            XLSX.writeFile(workbook, `AMPL_Dashboard_${new Date().toLocaleDateString()}.xlsx`);
+            XLSX.writeFile(wb, `AMPL_Dashboard_${new Date().toLocaleDateString()}.xlsx`);
         });
     </script>
 </body>
