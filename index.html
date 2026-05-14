@@ -38,7 +38,7 @@
         <!-- Cabeçalho -->
         <header class="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="flex items-center gap-5">
-                <!-- Logo AMPL Customizado (Preenchimento Total) -->
+                <!-- Logo AMPL Customizado -->
                 <div class="bg-black p-0 rounded-2xl shadow-xl flex flex-col items-center justify-center w-24 h-24 overflow-hidden border border-slate-800 leading-none relative">
                     <span class="text-white font-black text-3xl tracking-tighter z-10 -mt-1 uppercase">AMPL</span>
                     <svg viewBox="0 0 1024 1024" class="amazon-orange w-full scale-150 absolute bottom-1" fill="currentColor">
@@ -137,6 +137,7 @@
                 <table class="w-full text-left border-collapse" id="mainTable">
                     <thead>
                         <tr class="bg-slate-50 text-slate-400 uppercase text-[10px] font-black tracking-widest">
+                            <th class="px-8 py-5 border-b">Data</th>
                             <th class="px-8 py-5 border-b">ID Rota (Tratado)</th>
                             <th class="px-8 py-5 border-b">Modelo do Veículo</th>
                             <th class="px-8 py-5 border-b">Plano (h)</th>
@@ -152,7 +153,7 @@
                         <i data-lucide="file-spreadsheet" class="w-16 h-16"></i>
                     </div>
                     <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight uppercase">AMPL</h3>
-                    <p class="text-slate-400 mt-2 font-bold max-w-sm">Carregue o arquivo consolidado para processar a operação e aplicar os filtros de limpeza.</p>
+                    <p class="text-slate-400 mt-2 font-bold max-w-sm">Carregue o arquivo consolidado para processar a operação e aplicar os filtros de limpeza automática.</p>
                 </div>
             </div>
         </div>
@@ -188,6 +189,10 @@
             const file = e.target.files[0];
             if (!file) return;
 
+            // Extrair data do nome do arquivo (procura padrão YYYY-MM-DD)
+            const dateMatch = file.name.match(/\d{4}-\d{2}-\d{2}/);
+            const fileDate = dateMatch ? dateMatch[0] : 'Indefinida';
+
             uploadText.innerText = "Processando...";
             const reader = new FileReader();
 
@@ -209,7 +214,6 @@
                             const planMatch = firstRowStr.match(/Route plan:\s*(\d+\s*hours)/i);
                             let plan = planMatch ? planMatch[1].trim() : 'N/A';
                             if (plan !== 'N/A') {
-                                // Substitui " hours" por " h"
                                 plan = plan.replace(/\s*hours/i, ' h');
                             }
 
@@ -218,8 +222,8 @@
                             let rawST = stMatch ? stMatch[1].trim() : 'Indefinido';
                             
                             let serviceType = rawST;
-                            // Regra específica: Cargo Biker Preferred DSP: -> Cargo Biker
-                            if (rawST.toLowerCase().includes("cargo biker") && rawST.toLowerCase().includes("preferred dsp:")) {
+                            // Normalização rigorosa para Cargo Biker
+                            if (rawST.toLowerCase().includes("cargo biker")) {
                                 serviceType = "Cargo Biker";
                             } else {
                                 serviceType = rawST.split('-')[0].trim();
@@ -238,6 +242,7 @@
                             }
 
                             consolidatedData.push({ 
+                                opDate: fileDate,
                                 routeName, 
                                 serviceType, 
                                 routePlan: plan, 
@@ -284,6 +289,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-orange-50/30 transition-colors group";
                 tr.innerHTML = `
+                    <td class="px-8 py-5 text-slate-400 font-medium text-xs">${item.opDate}</td>
                     <td class="px-8 py-5 text-slate-800 flex items-center gap-2">
                         <span class="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
                         ${item.routeName}
@@ -318,7 +324,7 @@
 
             const summaryEl = document.getElementById('vehicleSummary');
             if (data.length === 0) {
-                summaryEl.innerHTML = '<p class="text-slate-400 italic font-medium">Aguardando dados...</p>';
+                summaryEl.innerHTML = '<p class="text-slate-400 italic font-medium">Aguardando dados da planilha...</p>';
                 return;
             }
 
@@ -336,7 +342,8 @@
             const term = e.target.value.toLowerCase();
             const filtered = rawData.filter(i => 
                 i.routeName.toLowerCase().includes(term) || 
-                i.serviceType.toLowerCase().includes(term)
+                i.serviceType.toLowerCase().includes(term) ||
+                i.opDate.includes(term)
             );
             renderData(filtered);
         });
@@ -345,6 +352,7 @@
             if (rawData.length === 0) return;
             const XLSX = window.XLSX;
             const ws = XLSX.utils.json_to_sheet(rawData.map(i => ({
+                'Data': i.opDate,
                 'Rota': i.routeName,
                 'Modelo Veículo': i.serviceType,
                 'Tempo de Rota': i.routePlan,
@@ -352,7 +360,7 @@
             })));
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, ws, "Dashboard");
-            XLSX.writeFile(wb, `AMPL_Dashboard_${new Date().toLocaleDateString()}.xlsx`);
+            XLSX.writeFile(workbook, `AMPL_Dashboard_${new Date().toLocaleDateString()}.xlsx`);
         });
     </script>
 </body>
